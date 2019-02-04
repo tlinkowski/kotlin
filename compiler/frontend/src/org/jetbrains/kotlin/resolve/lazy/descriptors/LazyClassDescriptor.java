@@ -93,7 +93,7 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
     private final NullableLazyValue<ClassDescriptorWithResolutionScopes> companionObjectDescriptor;
     private final MemoizedFunctionToNotNull<KtObjectDeclaration, ClassDescriptor> extraCompanionObjectDescriptors;
 
-    private final LazyClassMemberScope unsubstitutedMemberScope;
+    private final NotNullLazyValue<ScopesHolderForClass<LazyClassMemberScope>> unsubstitutedMemberScope;
     private final MemberScope staticScope;
 
     private final NullableLazyValue<Void> forceResolveAllContents;
@@ -310,17 +310,21 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
 
     // NOTE: Called from constructor!
     @NotNull
-    protected LazyClassMemberScope createMemberScope(
+    protected NotNullLazyValue<ScopesHolderForClass<LazyClassMemberScope>> createMemberScope(
             @NotNull LazyClassContext c,
             @NotNull ClassMemberDeclarationProvider declarationProvider
     ) {
-        return new LazyClassMemberScope(c, declarationProvider, this, c.getTrace());
+        return ScopesHolderForClass.Companion.create(
+                this,
+                c.getStorageManager(),
+                moduleDescriptor -> new LazyClassMemberScope(c, declarationProvider, this, c.getTrace(), moduleDescriptor)
+        );
     }
 
     @NotNull
     @Override
-    public MemberScope getUnsubstitutedMemberScope() {
-        return unsubstitutedMemberScope;
+    public MemberScope getUnsubstitutedMemberScope(@NotNull ModuleDescriptor moduleDescriptor) {
+        return unsubstitutedMemberScope.invoke().getScope(moduleDescriptor);
     }
 
     @NotNull
@@ -369,7 +373,7 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
     @SuppressWarnings("unchecked")
     public Collection<CallableMemberDescriptor> getDeclaredCallableMembers() {
         return (Collection) CollectionsKt.filter(
-                DescriptorUtils.getAllDescriptors(unsubstitutedMemberScope),
+                DescriptorUtils.getAllDescriptors(getUnsubstitutedMemberScope()),
                 descriptor -> descriptor instanceof CallableMemberDescriptor
                               && ((CallableMemberDescriptor) descriptor).getKind() != CallableMemberDescriptor.Kind.FAKE_OVERRIDE
         );
@@ -384,12 +388,12 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
     @NotNull
     @Override
     public Collection<ClassConstructorDescriptor> getConstructors() {
-        return unsubstitutedMemberScope.getConstructors();
+        return ((LazyClassMemberScope) getUnsubstitutedMemberScope()).getConstructors();
     }
 
     @Override
     public ClassConstructorDescriptor getUnsubstitutedPrimaryConstructor() {
-        return unsubstitutedMemberScope.getPrimaryConstructor();
+        return ((LazyClassMemberScope) getUnsubstitutedMemberScope()).getPrimaryConstructor();
     }
 
     @NotNull
