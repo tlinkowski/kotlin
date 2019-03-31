@@ -150,4 +150,95 @@ if (kotlinBuildProperties.isInJpsBuildIdeaSync) {
             }
         }
     }
+
+    project(":prepare:idea-plugin").afterEvaluate {
+        val embedded by configurations
+        val libraries by configurations
+        val jpsPlugin by configurations
+
+        rootProject.idea {
+            project {
+                settings {
+                    ideArtifacts {
+                        create("dist-auto-kotlin-plugin.jar") {
+                            directory("META-INF") {
+                                file("$buildDir/tmp/jar/MANIFEST.MF")
+                            }
+
+                            jarFromConfiguration(embedded)
+                        }
+
+                        create("dist-auto-idea-plugin") {
+                            directory("Kotlin") {
+                                directory("kotlinc") {
+                                    artifact("kotlinc")
+                                }
+
+                                directory("lib") {
+                                    directoryFromConfiguration(libraries)
+
+                                    directory("jps") {
+                                        directoryFromConfiguration(jpsPlugin)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+val jarArtifactProjects = listOf(
+    "kotlin-compiler-client-embeddable",
+    "kotlin-compiler",
+    "kotlin-daemon-client",
+    "kotlin-imports-dumper-compiler-plugin",
+    "kotlin-jps-plugin",
+    "kotlin-main-kts",
+    "kotlin-reflect"
+)
+
+fun moduleName(projectPath: String) = rootProject.name + projectPath.replace(':', '.') + ".main"
+
+fun TopLevelArtifact.jarFromConfiguration(configuration: Configuration) {
+    val resolvedArtifacts = configuration
+        .resolvedConfiguration
+        .resolvedArtifacts
+
+    resolvedArtifacts.filter { it.id.componentIdentifier is ModuleComponentIdentifier }
+        .map { it.file }
+        .forEach(::extractedDirectory)
+
+    resolvedArtifacts
+        .map { it.id.componentIdentifier }
+        .filterIsInstance<ProjectComponentIdentifier>()
+        .forEach {
+            moduleOutput(moduleName(it.projectPath))
+        }
+}
+
+fun RecursiveArtifact.directoryFromConfiguration(configuration: Configuration) {
+    val resolvedArtifacts = configuration
+        .resolvedConfiguration
+        .resolvedArtifacts
+
+    resolvedArtifacts.filter { it.id.componentIdentifier is ModuleComponentIdentifier }
+        .map { it.file }
+        .forEach(::file)
+
+    resolvedArtifacts
+        .map { it.id.componentIdentifier }
+        .filterIsInstance<ProjectComponentIdentifier>()
+        .forEach {
+            val artifactName = it.projectName + ".jar"
+            if (it.projectName in jarArtifactProjects) {
+                artifact(artifactName)
+            } else {
+                archive(artifactName) {
+                    moduleOutput(moduleName(it.projectPath))
+                }
+            }
+        }
 }
