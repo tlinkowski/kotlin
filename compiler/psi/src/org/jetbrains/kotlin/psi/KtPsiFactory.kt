@@ -840,7 +840,9 @@ class KtPsiFactory @JvmOverloads constructor(private val project: Project, val m
 
     // special hack used in ControlStructureTypingVisitor
     // TODO: get rid of it
-    fun wrapInABlockWrapper(expression: KtExpression): KtBlockExpression {
+    fun wrapInABlockWrapper(expression: KtExpression): KtExpression {
+
+        return expression
         if (expression is KtBlockExpression) {
             return expression
         }

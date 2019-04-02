@@ -110,8 +110,8 @@ public class ControlStructureTypingVisitor extends ExpressionTypingVisitor {
                     elseBranch, elseScope, elseInfo, thenInfo, context, ifExpression);
         }
         KtPsiFactory psiFactory = KtPsiFactoryKt.KtPsiFactory(ifExpression, false);
-        KtBlockExpression thenBlock = psiFactory.wrapInABlockWrapper(thenBranch);
-        KtBlockExpression elseBlock = psiFactory.wrapInABlockWrapper(elseBranch);
+        KtExpression thenBlock = psiFactory.wrapInABlockWrapper(thenBranch);
+        KtExpression elseBlock = psiFactory.wrapInABlockWrapper(elseBranch);
         Call callForIf = createCallForSpecialConstruction(ifExpression, ifExpression, Lists.newArrayList(thenBlock, elseBlock));
         MutableDataFlowInfoForArguments dataFlowInfoForArguments =
                     createDataFlowInfoForArgumentsForIfCall(callForIf, conditionDataFlowInfo, thenInfo, elseInfo);
