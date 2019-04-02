@@ -346,6 +346,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
                 this is KtClass && this.isAnnotation() -> implicitAnnotationType
                 else -> implicitAnyType
             }
+            // TODO: for enum / annotations, it *should* be empty
             if (container.superTypeRefs.isEmpty()) {
                 container.superTypeRefs += defaultDelegatedSuperTypeRef
             }
