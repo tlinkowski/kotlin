@@ -42,7 +42,7 @@ enum class FirOperation(val operator: String = "???") {
         val ASSIGNMENTS: Set<FirOperation> = EnumSet.of(ASSIGN, PLUS_ASSIGN, MINUS_ASSIGN, TIMES_ASSIGN, DIV_ASSIGN, REM_ASSIGN)
 
         val BOOLEANS: Set<FirOperation> = EnumSet.of(
-            EQ, NOT_EQ, IDENTITY, NOT_IDENTITY, LT, GT, LT_EQ, GT_EQ, IN, NOT_IN, EXCL, IS, NOT_IS
+            EQ, NOT_EQ, IDENTITY, NOT_IDENTITY, LT, GT, LT_EQ, GT_EQ, IN, NOT_IN, IS, NOT_IS
         )
 
         val COMPARISONS: Set<FirOperation> = EnumSet.of(LT, GT, LT_EQ, GT_EQ)
