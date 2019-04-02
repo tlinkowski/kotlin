@@ -344,8 +344,9 @@ internal class Fir2IrVisitor(
                 }
             }
             body = firFunction.body?.convertToIrBlockBody()
-            if (this !is IrConstructor || !this.isPrimary) {
+            if (this !is IrConstructor) {
                 // Scope for primary constructor should be left after class declaration
+                // Scope for secondary constructor should be left after delegating call
                 declarationStorage.leaveScope(descriptor)
             }
         }
@@ -370,6 +371,9 @@ internal class Fir2IrVisitor(
                 if (body.statements.isNotEmpty()) {
                     this.body = body
                 }
+            }
+            if (!constructor.isPrimary) {
+                declarationStorage.leaveScope(irConstructor.descriptor)
             }
         }
     }
