@@ -993,10 +993,13 @@ internal class Fir2IrVisitor(
         val firstType = first.typeRef as? FirResolvedTypeRef
         val secondType = second.typeRef as? FirResolvedTypeRef
         if (firstType == null || secondType == null) {
-            TODO("Comparison of arguments with unresolved types")
+            return IrErrorCallExpressionImpl(startOffset, endOffset, booleanType, "Comparison of arguments with unresolved types")
         }
         if (!AbstractStrictEqualityTypeChecker.strictEqualTypes(typeContext, firstType.type, secondType.type)) {
-            TODO("Comparison of arguments with different types: ${firstType.type.render()}, ${secondType.type.render()}")
+            return IrErrorCallExpressionImpl(
+                startOffset, endOffset, booleanType,
+                "Comparison of arguments with different types: ${firstType.type.render()}, ${secondType.type.render()}"
+            )
         }
         // TODO: it's temporary hack which should be refactored
         val simpleType = when (val classId = (firstType.type as? ConeClassLikeType)?.lookupTag?.classId) {
@@ -1004,7 +1007,11 @@ internal class Fir2IrVisitor(
             ClassId(FqName("kotlin"), FqName("Int"), false) -> irBuiltIns.builtIns.intType
             ClassId(FqName("kotlin"), FqName("Float"), false) -> irBuiltIns.builtIns.floatType
             ClassId(FqName("kotlin"), FqName("Double"), false) -> irBuiltIns.builtIns.doubleType
-            else -> TODO("Comparison of arguments with unsupported type: $classId")
+            else -> {
+                return IrErrorCallExpressionImpl(
+                    startOffset, endOffset, booleanType, "Comparison of arguments with unsupported type: $classId"
+                )
+            }
         }
         val (symbol, origin) = when (operation) {
             FirOperation.LT -> irBuiltIns.lessFunByOperandType[simpleType] to IrStatementOrigin.LT
