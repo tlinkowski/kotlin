@@ -218,6 +218,7 @@ internal class Fir2IrVisitor(
             if (name in processedFunctionNames) continue
             processedFunctionNames += name
             useSiteScope.processFunctionsByName(name) { functionSymbol ->
+                // TODO: think about overloaded functions. May be we should process all names.
                 if (functionSymbol is FirFunctionSymbol) {
                     val originalFunction = functionSymbol.fir as FirNamedFunction
                     val origin = IrDeclarationOrigin.FAKE_OVERRIDE
@@ -486,7 +487,8 @@ internal class Fir2IrVisitor(
                     IrFieldImpl(
                         startOffset, endOffset, backingOrigin, symbol,
                         property.name, type, property.visibility,
-                        isFinal = property.isVal, isExternal = false, isStatic = property.isStatic
+                        isFinal = property.isVal, isExternal = false,
+                        isStatic = property.isStatic || irParent !is IrClass
                     )
                 }.setParentByParentStack().withParent {
                     val initializerExpression = initializer?.accept(this@Fir2IrVisitor, null) as IrExpression?
