@@ -387,6 +387,7 @@ class RawFirBuilder(val session: FirSession, val stubMode: Boolean) {
 
             fun defaultVisibility() =
                 if (owner is KtObjectDeclaration || owner.hasModifier(SEALED_KEYWORD) || owner.hasModifier(ENUM_KEYWORD))
+                // TODO: sealed is FILE_PRIVATE (?) object / enum is HIDDEN (?)
                     Visibilities.PRIVATE
                 else
                     Visibilities.UNKNOWN
